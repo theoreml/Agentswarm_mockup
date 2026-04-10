@@ -588,10 +588,10 @@ body {
 
 .upsell-cta {
   width: 100%; padding: 12px;
-  background: linear-gradient(135deg, #6D28D9, #7C3AED); color: #fff;
+  background: linear-gradient(135deg, #1D4ED8, #2563EB); color: #fff;
   border: none; border-radius: 11px; font-size: 13px; font-weight: 800;
   font-family: 'Noto Sans KR', sans-serif; cursor: pointer;
-  box-shadow: 0 4px 20px rgba(109,40,217,0.5);
+  box-shadow: 0 4px 20px rgba(29,78,216,0.5);
   transition: opacity .15s, transform .12s;
 }
 .upsell-cta:hover { opacity: .88; transform: translateY(-1px); }
@@ -905,6 +905,18 @@ function renderCommunity(key, data) {
   const footer = document.getElementById(`footer-${key}`);
   const meta = document.getElementById(`${key}-meta`);
 
+  if (key === 'insta') {
+    const hashtags = Array.isArray(data) ? data : (data.hashtags || []);
+    if (!hashtags.length) {
+      body.innerHTML = '<div style="color:var(--text-tertiary);font-size:12px;padding:8px 0;">반응 데이터를 가져오지 못했어요.</div>';
+      return;
+    }
+    meta.textContent = `해시태그 ${hashtags.length}개`;
+    body.innerHTML = '';
+    renderInsta(body, footer, data);
+    return;
+  }
+
   if (!data || !data.length) {
     body.innerHTML = '<div style="color:var(--text-tertiary);font-size:12px;padding:8px 0;">반응 데이터를 가져오지 못했어요.</div>';
     return;
@@ -916,7 +928,6 @@ function renderCommunity(key, data) {
   if (key === 'mom') renderMom(body, footer, data);
   else if (key === 'dc') renderDc(body, footer, data);
   else if (key === 'fem') renderFem(body, footer, data);
-  else if (key === 'insta') renderInsta(body, footer, data);
 }
 
 function esc(s) {
