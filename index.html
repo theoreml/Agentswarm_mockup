@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스웜 — 페르소나 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #09090B;
+  --surface: rgba(255,255,255,0.035);
+  --surface-hover: rgba(255,255,255,0.055);
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.11);
+
+  --text-primary: #EFEFF1;
+  --text-secondary: rgba(239,239,241,0.58);
+  --text-tertiary: rgba(239,239,241,0.32);
+
+  --mom: #0FD9A0;
+  --mom-glass: rgba(15,217,160,0.09);
+  --mom-border: rgba(15,217,160,0.18);
+  --mom-glow: rgba(15,217,160,0.28);
+
+  --dc: #FF8C55;
+  --dc-glass: rgba(255,140,85,0.09);
+  --dc-border: rgba(255,140,85,0.18);
+
+  --fem: #A78BFA;
+  --fem-glass: rgba(167,139,250,0.09);
+  --fem-border: rgba(167,139,250,0.18);
+
+  --insta: #F472B6;
+  --insta-glass: rgba(244,114,182,0.09);
+  --insta-border: rgba(244,114,182,0.18);
+
+  --red: #FB7185;
+  --red-glass: rgba(251,113,133,0.09);
+  --red-border: rgba(251,113,133,0.18);
+  --yellow: #FCD34D;
+  --yellow-glass: rgba(252,211,77,0.09);
+  --yellow-border: rgba(252,211,77,0.18);
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background:
+    radial-gradient(ellipse at 18% 28%, rgba(109,40,217,0.14) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 72%, rgba(15,217,160,0.07) 0%, transparent 48%),
+    radial-gradient(ellipse at 58% 8%,  rgba(59,130,246,0.07) 0%, transparent 42%),
+    #09090B;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── INPUT SCREEN ── */
+#input-screen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px;
+}
+
+.input-card {
+  width: 100%; max-width: 560px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 36px 32px;
+  backdrop-filter: blur(20px);
+}
+
+.input-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px; font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  display: flex; align-items: center; gap: 9px;
+  margin-bottom: 8px;
+}
+.input-logo-mark {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, #6D28D9, #A78BFA);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: #fff; font-weight: 900;
+  box-shadow: 0 0 16px rgba(139,92,246,0.5);
+}
+.input-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  margin-bottom: 28px;
+}
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--text-tertiary); text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.field input, .field textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px; color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  outline: none;
+  transition: border-color 0.18s;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text-tertiary); }
+.field input:focus, .field textarea:focus { border-color: rgba(167,139,250,0.5); }
+.field textarea { resize: vertical; min-height: 80px; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.simulate-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #6D28D9, #7C3AED);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 800;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; letter-spacing: -0.3px;
+  margin-top: 8px;
+  box-shadow: 0 4px 20px rgba(109,40,217,0.5);
+  transition: opacity .15s, transform .12s;
+}
+.simulate-btn:hover { opacity: .88; transform: translateY(-1px); }
+.simulate-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* ── RESULT SCREEN ── */
+#result-screen { display: none; flex-direction: column; min-height: 100vh; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(9,9,11,0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  height: 60px;
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 16px;
+}
+.logo {
+  font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+  font-size: 17px; font-weight: 800;
+  color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+}
+.logo-mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, #6D28D9, #A78BFA);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #fff; font-weight: 900;
+  box-shadow: 0 0 16px rgba(139,92,246,0.5);
+}
+.nav-divider { width: 1px; height: 18px; background: var(--border-strong); flex-shrink: 0; }
+.sim-pill {
+  flex: 1; min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 7px 14px;
+  font-size: 12.5px; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 8px;
+  overflow: hidden;
+}
+.sim-pill .chip {
+  background: rgba(167,139,250,0.18); color: #C4B5FD;
+  border: 1px solid rgba(167,139,250,0.28);
+  font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 5px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.sim-pill .product-name {
+  font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.status-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--mom-glass);
+  border: 1px solid var(--mom-border);
+  border-radius: 20px; padding: 6px 13px;
+  font-size: 11.5px; font-weight: 600; color: var(--mom);
+  white-space: nowrap; flex-shrink: 0;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--mom); box-shadow: 0 0 8px var(--mom-glow);
+  animation: blink 1.8s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.nav-back {
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 8px; color: var(--text-secondary);
+  font-size: 12px; padding: 5px 12px; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.nav-back:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
+
+/* RISK BANNER */
+@keyframes riskPulse {
+  0%,100% { box-shadow: inset 0 0 0 1px rgba(251,113,133,0.16); }
+  50%      { box-shadow: inset 0 0 0 1px rgba(251,113,133,0.32), 0 0 24px rgba(251,113,133,0.06); }
+}
+.risk-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(251,113,133,0.10);
+  border-top: 1px solid rgba(251,113,133,0.20);
+  border-bottom: 1px solid rgba(251,113,133,0.20);
+  padding: 0 18px; height: 42px; flex-shrink: 0;
+  animation: riskPulse 3s ease-in-out infinite;
+}
+.risk-banner-icon { font-size: 14px; flex-shrink: 0; }
+.risk-banner-text { font-size: 12px; font-weight: 500; color: rgba(251,113,133,0.82); flex: 1; }
+.risk-banner-text strong { font-weight: 800; color: #FCA5A5; }
+.risk-banner-pill {
+  background: rgba(251,113,133,0.2); color: #FCA5A5;
+  border: 1px solid rgba(251,113,133,0.4);
+  font-family: 'Outfit', monospace;
+  font-size: 10px; font-weight: 900; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 5px; flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(251,113,133,0.2);
+}
+
+/* LAYOUT */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 288px;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 60px);
+}
+.main-col { display: flex; flex-direction: column; overflow: hidden; }
+.panels-area {
+  overflow-y: auto; padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 11px; flex: 1;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.07) transparent;
+}
+
+/* PANEL */
+.panel {
+  background: rgba(255,255,255,0.026);
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  animation: fadeUp 0.5s cubic-bezier(.22,.68,0,1.2) both;
+  transition: border-color 0.25s;
+}
+.panel:hover { border-color: rgba(255,255,255,0.1); }
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(14px) scale(0.985); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+.panel:nth-child(1){animation-delay:.05s}
+.panel:nth-child(2){animation-delay:.13s}
+.panel:nth-child(3){animation-delay:.21s}
+.panel:nth-child(4){animation-delay:.29s}
+
+.panel-header {
+  padding: 11px 14px 10px;
+  display: flex; align-items: center; gap: 9px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.panel-accent-bar { width: 3px; height: 16px; border-radius: 2px; flex-shrink: 0; }
+.panel-title { font-size: 13px; font-weight: 700; letter-spacing: -0.2px; }
+.panel-meta {
+  margin-left: auto; font-family: 'Outfit', sans-serif;
+  font-size: 10.5px; color: var(--text-tertiary); font-weight: 500;
+}
+.panel-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; border: 1px solid; }
+
+.panel-body {
+  flex: 1; overflow-y: auto; padding: 11px 12px 8px;
+  display: flex; flex-direction: column; gap: 9px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.05) transparent;
+}
+
+.panel-footer {
+  padding: 8px 11px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: 5px;
+  background: rgba(0,0,0,0.18); flex-shrink: 0;
+}
+
+.badge { font-size: 10px; font-weight: 600; padding: 2.5px 8px; border-radius: 5px; display: flex; align-items: center; gap: 4px; border: 1px solid; }
+.badge-red    { background: var(--red-glass);    border-color: var(--red-border);    color: var(--red); }
+.badge-yellow { background: var(--yellow-glass); border-color: var(--yellow-border); color: var(--yellow); }
+.badge-green  { background: var(--mom-glass);    border-color: var(--mom-border);    color: var(--mom); }
+
+/* 맘카페 */
+.panel-mom .panel-accent-bar { background: var(--mom); box-shadow: 0 0 10px var(--mom-glow); }
+.panel-mom .panel-title { color: #5EEAC0; }
+.panel-mom .panel-tag { background: var(--mom-glass); border-color: var(--mom-border); color: var(--mom); }
+
+.msg-mom { display: flex; gap: 9px; align-items: flex-start; }
+.mom-ava {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 800; color: #0a1f18;
+  background: linear-gradient(135deg, var(--mom), #059669); margin-top: 1px;
+}
+.mom-content { flex: 1; }
+.mom-nick { font-size: 11px; font-weight: 700; color: var(--mom); margin-bottom: 3px; }
+.mom-bubble {
+  background: var(--mom-glass); border: 1px solid var(--mom-border);
+  border-radius: 3px 12px 12px 12px;
+  padding: 8px 12px; font-size: 12.5px; color: var(--text-primary); line-height: 1.62;
+}
+.mom-time { font-size: 9.5px; color: var(--text-tertiary); margin-top: 3px; text-align: right; }
+
+/* 디시 */
+.panel-dc .panel-accent-bar { background: var(--dc); box-shadow: 0 0 10px rgba(255,140,85,0.28); }
+.panel-dc .panel-title { color: #FFAA77; }
+.panel-dc .panel-tag { background: var(--dc-glass); border-color: var(--dc-border); color: var(--dc); }
+
+.msg-dc {
+  border-left: 2px solid rgba(255,140,85,0.22);
+  padding: 5px 0 5px 10px;
+  display: flex; flex-direction: column; gap: 3px;
+  transition: border-color .18s;
+}
+.msg-dc:hover { border-left-color: var(--dc); }
+.dc-nick { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; color: rgba(255,140,85,0.6); }
+.dc-text { font-size: 12.5px; color: var(--text-primary); line-height: 1.55; }
+.dc-meta { font-size: 9.5px; color: var(--text-tertiary); display: flex; gap: 10px; }
+.dc-meta .rec { color: var(--dc); font-weight: 600; }
+
+/* 펨코 */
+.panel-fem .panel-accent-bar { background: var(--fem); box-shadow: 0 0 10px rgba(167,139,250,0.28); }
+.panel-fem .panel-title { color: #C4B5FD; }
+.panel-fem .panel-tag { background: var(--fem-glass); border-color: var(--fem-border); color: var(--fem); }
+
+.msg-fem { display: flex; gap: 9px; align-items: flex-start; }
+.fem-lv {
+  width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+  background: var(--fem-glass); border: 1px solid var(--fem-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800; color: var(--fem);
+  font-family: 'IBM Plex Mono', monospace; margin-top: 2px;
+}
+.fem-content { flex: 1; }
+.fem-nick { font-size: 11px; font-weight: 700; color: var(--fem); margin-bottom: 3px; }
+.fem-text {
+  background: var(--fem-glass); border: 1px solid var(--fem-border);
+  border-radius: 3px 12px 12px 12px;
+  padding: 8px 12px; font-size: 12.5px; color: var(--text-primary); line-height: 1.62;
+}
+.fem-vote { font-size: 10px; color: var(--text-tertiary); margin-top: 3px; display: flex; gap: 10px; }
+.fem-vote .up { color: var(--fem); font-weight: 700; }
+
+/* 인스타 */
+.panel-insta .panel-accent-bar { background: linear-gradient(180deg, var(--insta), #FB923C); box-shadow: 0 0 10px rgba(244,114,182,0.28); }
+.panel-insta .panel-title { color: #F9A8D4; }
+.panel-insta .panel-tag { background: var(--insta-glass); border-color: var(--insta-border); color: var(--insta); }
+
+.insta-post-bar {
+  background: var(--insta-glass); border: 1px solid var(--insta-border);
+  border-radius: 10px; padding: 9px 11px;
+  display: flex; align-items: center; gap: 9px; margin-bottom: 2px;
+}
+.insta-post-ava {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--insta), #FB923C);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; flex-shrink: 0;
+}
+.insta-post-nick { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.insta-post-sub { font-size: 10px; color: var(--text-tertiary); }
+.insta-post-likes { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--insta); }
+
+.msg-insta { display: flex; gap: 8px; align-items: flex-start; }
+.insta-ava {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(244,114,182,0.12); border: 1px solid var(--insta-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; margin-top: 1px;
+}
+.insta-content { flex: 1; }
+.insta-handle { font-size: 11px; font-weight: 700; color: var(--insta); display: inline; }
+.insta-comment { font-size: 12.5px; color: var(--text-primary); line-height: 1.55; }
+.insta-heart { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; display: flex; gap: 8px; }
+
+/* 인스타 해시태그 */
+.hashtag-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  background: var(--insta-glass);
+  border: 1px solid var(--insta-border);
+  border-radius: 10px;
+  transition: background .15s;
+}
+.hashtag-row:hover { background: rgba(244,114,182,0.13); }
+.hashtag-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px; font-weight: 600; color: var(--insta);
+  flex-shrink: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 130px;
+}
+.hashtag-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.hashtag-context { font-size: 10.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hashtag-posts { font-family: 'Outfit', sans-serif; font-size: 10px; color: var(--text-tertiary); }
+.hashtag-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.hashtag-trend {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px; font-weight: 800;
+  width: 18px; text-align: center;
+}
+.trend-up   { color: var(--mom); }
+.trend-down { color: var(--red); }
+.trend-flat { color: var(--text-tertiary); }
+.hashtag-sentiment {
+  font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid;
+}
+.sent-positive { background: var(--mom-glass);    border-color: var(--mom-border);    color: var(--mom); }
+.sent-negative { background: var(--red-glass);    border-color: var(--red-border);    color: var(--red); }
+.sent-neutral  { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-tertiary); }
+.sent-mixed    { background: var(--yellow-glass); border-color: var(--yellow-border); color: var(--yellow); }
+
+/* 인스타 반응 스레드 */
+.insta-divider {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0 4px;
+}
+.insta-divider-line { flex: 1; height: 1px; background: var(--insta-border); }
+.insta-divider-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .7px;
+  color: rgba(244,114,182,0.45); text-transform: uppercase; white-space: nowrap;
+}
+
+.insta-reaction {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 2px 0;
+}
+.insta-reaction.is-reply { padding-left: 20px; }
+.insta-r-ava {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(244,114,182,0.3), rgba(251,146,60,0.3));
+  border: 1px solid var(--insta-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; margin-top: 1px;
+}
+.insta-r-ava.reply-ava { background: rgba(255,255,255,0.05); }
+.insta-r-body { flex: 1; }
+.insta-r-handle { font-size: 10.5px; font-weight: 700; color: var(--insta); }
+.insta-r-reply-to { font-size: 10.5px; color: var(--text-tertiary); }
+.insta-r-text { font-size: 12px; color: var(--text-primary); line-height: 1.55; }
+.insta-r-meta { font-size: 9.5px; color: var(--text-tertiary); margin-top: 2px; display: flex; gap: 8px; }
+.insta-r-hearts { color: rgba(244,114,182,0.6); }
+
+/* TYPING INDICATOR */
+.typing { display: flex; align-items: center; gap: 6px; padding: 3px 0; opacity: 0.45; }
+.dots { display: flex; gap: 3px; }
+.dots span {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--text-tertiary);
+  animation: bounce 1.2s ease-in-out infinite;
+}
+.dots span:nth-child(2){animation-delay:.15s}
+.dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce {
+  0%,80%,100%{transform:translateY(0);opacity:.4}
+  40%{transform:translateY(-4px);opacity:1}
+}
+.typing-label { font-size: 10.5px; color: var(--text-tertiary); font-style: italic; }
+
+/* SKELETON */
+.skeleton-msg { display: flex; gap: 9px; align-items: flex-start; }
+.skeleton-ava { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.06); flex-shrink: 0; animation: shimmer 1.5s infinite; }
+.skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.skeleton-line { height: 10px; border-radius: 5px; background: rgba(255,255,255,0.06); animation: shimmer 1.5s infinite; }
+.skeleton-line.short { width: 40%; }
+@keyframes shimmer {
+  0%,100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* SIDEBAR */
+.sidebar {
+  background: rgba(7,6,18,0.92);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid var(--border);
+  overflow-y: auto; display: flex; flex-direction: column;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent;
+}
+.sidebar-block {
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  animation: fadeUp .5s ease both;
+}
+.sidebar-block:nth-child(1){animation-delay:.30s}
+.sidebar-block:nth-child(2){animation-delay:.40s}
+
+.sb-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5px; font-weight: 700;
+  color: var(--text-tertiary); letter-spacing: .9px;
+  text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 7px;
+}
+.sb-title::before {
+  content: ''; display: block;
+  width: 2px; height: 10px; border-radius: 2px;
+  background: rgba(255,255,255,0.18);
+}
+
+/* ORB */
+.upsell-block {
+  border-radius: 14px; overflow: hidden; position: relative;
+  background: linear-gradient(150deg, #0D0A26 0%, #120E35 55%, #1A1545 100%);
+  border: 1px solid rgba(139,92,246,0.22);
+  padding: 18px 14px 14px;
+  display: flex; flex-direction: column; gap: 13px;
+}
+.upsell-graphic {
+  width: 100%; height: 100px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.orb-scene {
+  position: relative; width: 90px; height: 90px;
+  transform-style: preserve-3d;
+  animation: orbFloat 4s ease-in-out infinite;
+}
+@keyframes orbFloat {
+  0%,100% { transform: translateY(0) rotateX(8deg) rotateY(0deg); }
+  50%      { transform: translateY(-7px) rotateX(8deg) rotateY(15deg); }
+}
+.orb-glow {
+  position: absolute; inset: -20px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(109,40,217,0.42) 0%, transparent 70%);
+  filter: blur(14px); animation: glowPulse 3s ease-in-out infinite;
+}
+@keyframes glowPulse { 0%,100%{opacity:.65;transform:scale(1)} 50%{opacity:1;transform:scale(1.18)} }
+.orb-main {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 200deg, #6D28D9, #A78BFA, #3B82F6, #06B6D4, #6D28D9);
+  box-shadow: inset -8px -8px 20px rgba(0,0,0,0.55), inset 4px 4px 12px rgba(255,255,255,0.1), 0 8px 32px rgba(109,40,217,0.65);
+  animation: orbRotate 7s linear infinite;
+}
+@keyframes orbRotate { from{filter:hue-rotate(0deg)} to{filter:hue-rotate(360deg)} }
+.orb-shine {
+  position: absolute; top: 10px; left: 13px; width: 24px; height: 15px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.48) 0%, transparent 70%);
+  transform: rotate(-30deg); pointer-events: none;
+}
+.orb-chip {
+  position: absolute; background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 20px; padding: 3px 8px;
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.6);
+  white-space: nowrap; animation: chipFloat 3.5s ease-in-out infinite;
+}
+.orb-chip:nth-child(2){top:4px;left:-30px;animation-delay:.3s}
+.orb-chip:nth-child(3){top:4px;right:-35px;animation-delay:.9s}
+.orb-chip:nth-child(4){bottom:6px;left:-18px;animation-delay:1.5s;opacity:.4}
+.orb-chip:nth-child(5){bottom:6px;right:-22px;animation-delay:.6s;opacity:.4}
+@keyframes chipFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+.upsell-copy { display: flex; flex-direction: column; gap: 4px; }
+.upsell-sub { font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.32); letter-spacing:.4px; }
+.upsell-title { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.4px; line-height: 1.35; }
+.upsell-desc { font-size: 12px; color: rgba(255,255,255,0.42); line-height: 1.65; margin-top: 3px; }
+.upsell-desc strong { color: rgba(255,255,255,0.78); font-weight: 700; }
+
+.upsell-communities { display: flex; gap: 5px; flex-wrap: wrap; }
+.upsell-comm-tag {
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.38);
+  display: flex; align-items: center; gap: 4px;
+}
+.upsell-comm-tag.active { background: rgba(109,40,217,0.2); border-color: rgba(139,92,246,0.38); color: #C4B5FD; }
+
+.upsell-cta {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #6D28D9, #7C3AED); color: #fff;
+  border: none; border-radius: 11px; font-size: 13px; font-weight: 800;
+  font-family: 'Noto Sans KR', sans-serif; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(109,40,217,0.5);
+  transition: opacity .15s, transform .12s;
+}
+.upsell-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+/* SCENARIO */
+.scenario-block {
+  background: rgba(12,11,22,0.8); border: 1px solid var(--border);
+  border-radius: 14px; padding: 15px 14px 14px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.scen-loading {
+  text-align: center; color: var(--text-tertiary);
+  font-size: 12px; padding: 20px 0;
+}
+.scenario-price-row { display: flex; align-items: center; gap: 10px; }
+.scen-price-old { font-size: 13px; color: rgba(255,255,255,0.28); text-decoration: line-through; }
+.scen-arrow { font-size: 13px; color: rgba(255,255,255,0.22); }
+.scen-price-new { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -1px; line-height: 1; }
+.scen-diff { margin-left: auto; font-family: 'Outfit', sans-serif; background: var(--mom-glass); border: 1px solid var(--mom-border); border-radius: 6px; padding: 2px 7px; font-size: 11px; font-weight: 800; color: var(--mom); }
+.scenario-effects { display: flex; flex-direction: column; gap: 6px; }
+.effect-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.035); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
+.effect-label { font-size: 11.5px; color: var(--text-secondary); font-weight: 500; flex: 1; }
+.effect-val { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 900; color: #fff; }
+.effect-val.positive { color: var(--mom); }
+.effect-delta { font-family: 'Outfit', sans-serif; font-size: 10.5px; font-weight: 700; background: var(--mom-glass); color: var(--mom); border: 1px solid var(--mom-border); border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+.scenario-note { font-size: 10.5px; color: var(--text-tertiary); text-align: center; }
+.scenario-cta {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #059669, #0FD9A0); color: #071a13;
+  border: none; border-radius: 11px; font-size: 13px; font-weight: 800;
+  font-family: 'Noto Sans KR', sans-serif; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(15,217,160,0.32);
+  transition: opacity .15s, transform .12s;
+}
+.scenario-cta:hover { opacity: .88; transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- ── INPUT SCREEN ── -->
+<div id="input-screen">
+  <div class="input-card">
+    <div class="input-logo">
+      <div class="input-logo-mark">S</div>
+      스웜
+    </div>
+    <div class="input-subtitle">제품 정보를 입력하면 4개 커뮤니티의 반응을 실시간으로 시뮬레이션해드려요.</div>
+
+    <div class="field">
+      <label>제품명</label>
+      <input id="f-name" type="text" placeholder="예: 메디큐브 AGE-R 부스터 프로 세럼 50ml">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>판매 가격 (원)</label>
+        <input id="f-price" type="text" placeholder="예: 49000">
+      </div>
+      <div class="field">
+        <label>카테고리</label>
+        <input id="f-category" type="text" placeholder="예: 기능성 스킨케어">
+      </div>
+    </div>
+    <div class="field">
+      <label>제품 설명 · 특징</label>
+      <textarea id="f-desc" placeholder="예: 피부 장벽 강화 세럼. 나이아신아마이드 5% 함유. 자극 없는 순한 성분."></textarea>
+    </div>
+
+    <button class="simulate-btn" id="simulate-btn" onclick="startSimulation()">
+      페르소나 시뮬레이션 시작 →
+    </button>
+  </div>
+</div>
+
+<!-- ── RESULT SCREEN ── -->
+<div id="result-screen">
+
+  <nav class="nav">
+    <div class="logo">
+      <div class="logo-mark">S</div>
+      스웜
+    </div>
+    <div class="nav-divider"></div>
+    <div class="sim-pill">
+      <span class="chip">🧪 시뮬레이션 중</span>
+      <span class="product-name" id="nav-product-name"></span>
+    </div>
+    <div class="status-badge" id="status-badge">
+      <div class="live-dot"></div>
+      <span id="status-text">페르소나 반응 생성 중...</span>
+    </div>
+    <button class="nav-back" onclick="goBack()">← 새 시뮬레이션</button>
+  </nav>
+
+  <div class="risk-banner" id="risk-banner" style="display:none">
+    <span class="risk-banner-icon">⚠️</span>
+    <span class="risk-banner-text" id="risk-text"></span>
+    <span class="risk-banner-pill">RISK DETECTED</span>
+  </div>
+
+  <div class="workspace">
+    <div class="main-col">
+      <div class="panels-area">
+
+        <!-- 맘카페 -->
+        <div class="panel panel-mom">
+          <div class="panel-header">
+            <div class="panel-accent-bar"></div>
+            <span class="panel-title">맘카페</span>
+            <span class="panel-tag">뷰티·스킨케어</span>
+            <span class="panel-meta" id="mom-meta">생성 중...</span>
+          </div>
+          <div class="panel-body" id="panel-mom">
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>
+          </div>
+          <div class="panel-footer" id="footer-mom"></div>
+        </div>
+
+        <!-- 디시 -->
+        <div class="panel panel-dc">
+          <div class="panel-header">
+            <div class="panel-accent-bar"></div>
+            <span class="panel-title">디시인사이드 뷰티갤</span>
+            <span class="panel-tag">뷰티갤러리</span>
+            <span class="panel-meta" id="dc-meta">생성 중...</span>
+          </div>
+          <div class="panel-body" id="panel-dc">
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>
+          </div>
+          <div class="panel-footer" id="footer-dc"></div>
+        </div>
+
+        <!-- 펨코 -->
+        <div class="panel panel-fem">
+          <div class="panel-header">
+            <div class="panel-accent-bar"></div>
+            <span class="panel-title">펨코</span>
+            <span class="panel-tag">뷰티·소비</span>
+            <span class="panel-meta" id="fem-meta">생성 중...</span>
+          </div>
+          <div class="panel-body" id="panel-fem">
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>
+          </div>
+          <div class="panel-footer" id="footer-fem"></div>
+        </div>
+
+        <!-- 인스타 -->
+        <div class="panel panel-insta">
+          <div class="panel-header">
+            <div class="panel-accent-bar"></div>
+            <span class="panel-title">인스타그램</span>
+            <span class="panel-tag">해시태그 트렌드</span>
+            <span class="panel-meta" id="insta-meta">생성 중...</span>
+          </div>
+          <div class="panel-body" id="panel-insta">
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>
+            <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>
+          </div>
+          <div class="panel-footer" id="footer-insta"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-block" style="background:#0d0b1e; border-bottom-color:rgba(124,92,252,0.2);">
+        <div class="upsell-block">
+          <div class="upsell-graphic">
+            <div class="orb-scene">
+              <div class="orb-glow"></div>
+              <div class="orb-main"></div>
+              <div class="orb-shine"></div>
+              <div class="orb-chip active">맘카페</div>
+              <div class="orb-chip">펨코</div>
+              <div class="orb-chip">디시</div>
+              <div class="orb-chip">인스타</div>
+            </div>
+          </div>
+          <div class="upsell-copy">
+            <div class="upsell-sub" id="persona-count-label">페르소나 생성 중...</div>
+            <div class="upsell-title" id="sim-product-title">시뮬레이션 중</div>
+            <div class="upsell-desc" id="sim-product-desc">커뮤니티별 반응을 분석하고 있어요.</div>
+          </div>
+          <div class="upsell-communities">
+            <span class="upsell-comm-tag active" id="tag-mom">🌿 맘카페</span>
+            <span class="upsell-comm-tag" id="tag-dc">💬 디시</span>
+            <span class="upsell-comm-tag" id="tag-fem">🔮 펨코</span>
+            <span class="upsell-comm-tag" id="tag-insta">📸 인스타</span>
+          </div>
+          <button class="upsell-cta" onclick="goBack()">새 제품 시뮬레이션</button>
+        </div>
+      </div>
+
+      <div class="sidebar-block">
+        <div class="sb-title">시나리오 분석</div>
+        <div class="scenario-block" id="scenario-block">
+          <div class="scen-loading">⟳ 커뮤니티 반응 수집 중...</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+let productInfo = {};
+
+function goBack() {
+  document.getElementById('input-screen').style.display = 'flex';
+  document.getElementById('result-screen').style.display = 'none';
+}
+
+async function startSimulation() {
+  const name = document.getElementById('f-name').value.trim();
+  const price = document.getElementById('f-price').value.trim();
+  const category = document.getElementById('f-category').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+
+  if (!name || !price) {
+    alert('제품명과 가격은 필수예요.');
+    return;
+  }
+
+  productInfo = { name, price, category, desc };
+
+  // switch screens
+  document.getElementById('input-screen').style.display = 'none';
+  const resultScreen = document.getElementById('result-screen');
+  resultScreen.style.display = 'flex';
+
+  // set nav
+  document.getElementById('nav-product-name').textContent =
+    `${name} — ${Number(price).toLocaleString()}원` + (category ? ` / ${category}` : '');
+  document.getElementById('sim-product-title').textContent = name;
+  document.getElementById('sim-product-desc').textContent =
+    desc || `${category || '신제품'} · ${Number(price).toLocaleString()}원`;
+
+  // reset panels
+  resetPanels();
+
+  // start SSE
+  await runSimulation(name, price, desc + (category ? ` 카테고리: ${category}` : ''));
+}
+
+function resetPanels() {
+  const skeleton = `
+    <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
+    <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>`;
+  ['mom','dc','fem','insta'].forEach(k => {
+    document.getElementById(`panel-${k}`).innerHTML = skeleton;
+    document.getElementById(`footer-${k}`).innerHTML = '';
+    document.getElementById(`${k}-meta`).textContent = '생성 중...';
+    document.getElementById(`tag-${k}`).className = 'upsell-comm-tag';
+  });
+  document.getElementById('risk-banner').style.display = 'none';
+  document.getElementById('scenario-block').innerHTML = '<div class="scen-loading">⟳ 커뮤니티 반응 수집 중...</div>';
+  document.getElementById('status-text').textContent = '페르소나 반응 생성 중...';
+  document.getElementById('persona-count-label').textContent = '페르소나 생성 중...';
+}
+
+async function runSimulation(name, price, desc) {
+  let completed = 0;
+  const allData = {};
+
+  const res = await fetch('/simulate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, price, desc })
+  });
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+
+    const lines = buf.split('\n');
+    buf = lines.pop();
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const json = line.slice(6).trim();
+      if (!json) continue;
+      try {
+        const payload = JSON.parse(json);
+        if (payload.done) {
+          finalize(allData);
+          return;
+        }
+        allData[payload.community] = payload.data;
+        renderCommunity(payload.community, payload.data);
+        completed++;
+        document.getElementById('tag-' + payload.community).className = 'upsell-comm-tag active';
+        document.getElementById('persona-count-label').textContent =
+          `${completed}/4 커뮤니티 완료`;
+        if (completed === 4) {
+          document.getElementById('status-text').textContent = '32개 페르소나 반응 완료';
+        }
+      } catch(e) {}
+    }
+  }
+}
+
+function renderCommunity(key, data) {
+  const body = document.getElementById(`panel-${key}`);
+  const footer = document.getElementById(`footer-${key}`);
+  const meta = document.getElementById(`${key}-meta`);
+
+  if (!data || !data.length) {
+    body.innerHTML = '<div style="color:var(--text-tertiary);font-size:12px;padding:8px 0;">반응 데이터를 가져오지 못했어요.</div>';
+    return;
+  }
+
+  meta.textContent = `페르소나 ${data.length}개`;
+  body.innerHTML = '';
+
+  if (key === 'mom') renderMom(body, footer, data);
+  else if (key === 'dc') renderDc(body, footer, data);
+  else if (key === 'fem') renderFem(body, footer, data);
+  else if (key === 'insta') renderInsta(body, footer, data);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMom(body, footer, data) {
+  data.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'msg-mom';
+    div.style.animation = `fadeUp .4s ${0.05 + i * 0.13}s both`;
+    const initial = (m.nick || '?').charAt(0);
+    div.innerHTML = `
+      <div class="mom-ava">${esc(initial)}</div>
+      <div class="mom-content">
+        <div class="mom-nick">${esc(m.nick)}</div>
+        <div class="mom-bubble">${esc(m.text)}</div>
+        <div class="mom-time">${esc(m.time || '')}</div>
+      </div>`;
+    body.appendChild(div);
+  });
+  // typing
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.style.animation = `fadeUp .4s ${0.05 + data.length * 0.13}s both`;
+  t.innerHTML = `<div class="dots"><span></span><span></span><span></span></div><span class="typing-label">다른 회원 입력 중...</span>`;
+  body.appendChild(t);
+  // detect risk keywords
+  const riskWords = ['비싸','가격','자사몰','올리브영','쿠팡','쿠폰','고민'];
+  const hasRisk = data.some(m => riskWords.some(w => m.text.includes(w)));
+  footer.innerHTML = hasRisk
+    ? `<span class="badge badge-red">🔴 가격 저항 감지</span><span class="badge badge-yellow">🟡 채널 전환 선호</span><span class="badge badge-green">🟢 입소문 가능성</span>`
+    : `<span class="badge badge-green">🟢 긍정 반응</span><span class="badge badge-yellow">🟡 구매 고려 중</span>`;
+}
+
+function renderDc(body, footer, data) {
+  data.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'msg-dc';
+    div.style.animation = `fadeUp .4s ${0.05 + i * 0.13}s both`;
+    div.innerHTML = `
+      <div class="dc-nick">${esc(m.nick)}</div>
+      <div class="dc-text">${esc(m.text)}</div>
+      <div class="dc-meta"><span>번호 ${esc(m.no || '')}</span><span class="rec">추천 ${m.rec || 0}</span><span>비추 ${m.blc || 0}</span></div>`;
+    body.appendChild(div);
+  });
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = `<div class="dots"><span></span><span></span><span></span></div><span class="typing-label">ㅇㅇ (203.xxx) 입력 중...</span>`;
+  body.appendChild(t);
+  footer.innerHTML = `<span class="badge badge-red">🔴 브랜드 비판</span><span class="badge badge-green">🟢 성분 논쟁</span><span class="badge badge-yellow">🟡 가성비 분석</span>`;
+}
+
+function renderFem(body, footer, data) {
+  data.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'msg-fem';
+    div.style.animation = `fadeUp .4s ${0.05 + i * 0.13}s both`;
+    div.innerHTML = `
+      <div class="fem-lv">${esc(m.lv || 'Lv?')}</div>
+      <div class="fem-content">
+        <div class="fem-nick">${esc(m.nick)}</div>
+        <div class="fem-text">${esc(m.text)}</div>
+        <div class="fem-vote"><span class="up">▲ ${m.up || 0}</span><span>▼ ${m.down || 0}</span><span>댓글 ${m.reply || 0}</span></div>
+      </div>`;
+    body.appendChild(div);
+  });
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = `<div class="dots"><span></span><span></span><span></span></div><span class="typing-label">소비_냉정분석 입력 중...</span>`;
+  body.appendChild(t);
+  footer.innerHTML = `<span class="badge badge-red">🔴 광고 피로도</span><span class="badge badge-yellow">🟡 카테고리 관심</span><span class="badge badge-red">🔴 자사몰 전환 낮음</span>`;
+}
+
+function renderInsta(body, footer, raw) {
+  const hashtags = Array.isArray(raw) ? raw : (raw.hashtags || []);
+  const reactions = Array.isArray(raw) ? [] : (raw.reactions || []);
+
+  const trendIcon  = { up: '↑', down: '↓', flat: '→' };
+  const trendClass = { up: 'trend-up', down: 'trend-down', flat: 'trend-flat' };
+  const sentLabel  = { positive: '긍정', negative: '부정', neutral: '중립', mixed: '혼재' };
+  const emojis     = ['🌸','✨','🫧','💜','🌙','🤍','💫','🪷'];
+
+  // ── 해시태그 rows ──
+  hashtags.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'hashtag-row';
+    div.style.animation = `fadeUp .4s ${0.04 + i * 0.08}s both`;
+    const trend = m.trend || 'flat';
+    const sent  = m.sentiment || 'neutral';
+    const posts = typeof m.posts === 'number' ? m.posts.toLocaleString() : m.posts;
+    div.innerHTML = `
+      <div class="hashtag-tag">${esc(m.tag)}</div>
+      <div class="hashtag-info">
+        <div class="hashtag-context">${esc(m.context)}</div>
+        <div class="hashtag-posts">게시물 ${posts}+</div>
+      </div>
+      <div class="hashtag-right">
+        <span class="hashtag-trend ${trendClass[trend]}">${trendIcon[trend]}</span>
+        <span class="hashtag-sentiment sent-${sent}">${sentLabel[sent] || sent}</span>
+      </div>`;
+    body.appendChild(div);
+  });
+
+  // ── 반응 스레드 ──
+  if (reactions.length) {
+    const divider = document.createElement('div');
+    divider.className = 'insta-divider';
+    divider.style.animation = `fadeUp .4s ${0.04 + hashtags.length * 0.08}s both`;
+    divider.innerHTML = `<div class="insta-divider-line"></div><span class="insta-divider-label">피드 반응</span><div class="insta-divider-line"></div>`;
+    body.appendChild(divider);
+
+    reactions.forEach((r, i) => {
+      const isReply = !!r.reply_to;
+      const div = document.createElement('div');
+      div.className = 'insta-reaction' + (isReply ? ' is-reply' : '');
+      div.style.animation = `fadeUp .4s ${0.1 + hashtags.length * 0.08 + i * 0.09}s both`;
+      const emoji = emojis[i % emojis.length];
+      div.innerHTML = `
+        <div class="insta-r-ava ${isReply ? 'reply-ava' : ''}">${emoji}</div>
+        <div class="insta-r-body">
+          <span class="insta-r-handle">${esc(r.handle)}</span>${isReply ? ` <span class="insta-r-reply-to">↩ ${esc(r.reply_to)}</span>` : ''}
+          <div class="insta-r-text">${esc(r.text)}</div>
+          <div class="insta-r-meta"><span class="insta-r-hearts">♥ ${r.hearts || 0}</span><span>답글달기</span></div>
+        </div>`;
+      body.appendChild(div);
+    });
+  }
+
+  // ── 푸터 뱃지 ──
+  const upCount  = hashtags.filter(m => m.trend === 'up').length;
+  const negCount = hashtags.filter(m => m.sentiment === 'negative').length;
+  const posCount = hashtags.filter(m => m.sentiment === 'positive').length;
+  footer.innerHTML = [
+    upCount  > 2 ? `<span class="badge badge-green">🟢 상승 태그 ${upCount}개</span>` : '',
+    posCount > 2 ? `<span class="badge badge-green">🟢 긍정 감성 우세</span>` : '',
+    negCount > 1 ? `<span class="badge badge-red">🔴 부정 태그 ${negCount}개</span>` : '',
+    `<span class="badge badge-yellow">🟡 태그 ${hashtags.length}개 · 반응 ${reactions.length}개</span>`
+  ].join('');
+}
+
+function finalize(allData) {
+  // risk analysis — check for price/channel keywords across all communities
+  const allTexts = Object.values(allData).flat().map(m => m.text || '').join(' ');
+  const priceRisk = allTexts.includes('비싸') || allTexts.includes('가격') || allTexts.includes('올리브영');
+  const adRisk = allTexts.includes('광고') || allTexts.includes('마케팅');
+
+  if (priceRisk || adRisk) {
+    const banner = document.getElementById('risk-banner');
+    const riskText = document.getElementById('risk-text');
+    let risks = [];
+    if (priceRisk) risks.push('가격 저항 및 타 채널 구매 선호 감지');
+    if (adRisk) risks.push('광고 피로도 높음');
+    riskText.innerHTML = `<strong>핵심 리스크</strong> — ${risks.join(' · ')}`;
+    banner.style.display = 'flex';
+  }
+
+  // scenario block
+  const price = parseInt(productInfo.price) || 0;
+  const alt = Math.round(price * 0.8 / 1000) * 1000;
+  document.getElementById('scenario-block').innerHTML = `
+    <div>
+      <div style="font-size:21px;font-weight:900;color:#fff;letter-spacing:-0.8px;line-height:1.2;font-family:'Outfit','Noto Sans KR',sans-serif;">${(price - alt).toLocaleString()}원만<br>낮추면</div>
+      <div class="scenario-price-row" style="margin-top:10px;">
+        <span class="scen-price-old">${price.toLocaleString()}원</span>
+        <span class="scen-arrow">→</span>
+        <span class="scen-price-new">${alt.toLocaleString()}원</span>
+        <span class="scen-diff">−${(price-alt).toLocaleString()}원</span>
+      </div>
+    </div>
+    <div style="font-size:12.5px;color:rgba(255,255,255,0.62);line-height:1.65;">
+      가격 저항 페르소나의 구매 의향을 끌어올릴 수 있어요.
+    </div>
+    <div class="scenario-effects">
+      <div class="effect-row">
+        <span class="effect-label">긍정 반응 예측</span>
+        <span class="effect-val positive">+15~20%<span class="effect-delta">↑</span></span>
+      </div>
+      <div class="effect-row">
+        <span class="effect-label">자사몰 전환 의향</span>
+        <span class="effect-val positive">+12~18%<span class="effect-delta">↑</span></span>
+      </div>
+    </div>
+    <div class="scenario-note">AI 시뮬레이션 예측값 · 실제 결과는 다를 수 있음</div>
+    <button class="scenario-cta" onclick="resimulate(${alt})">
+      ${alt.toLocaleString()}원으로 다시 시뮬레이션
+    </button>`;
+}
+
+function resimulate(newPrice) {
+  document.getElementById('f-price').value = newPrice;
+  productInfo.price = String(newPrice);
+  document.getElementById('nav-product-name').textContent =
+    `${productInfo.name} — ${Number(newPrice).toLocaleString()}원`;
+  resetPanels();
+  runSimulation(productInfo.name, String(newPrice), productInfo.desc);
+}
+</script>
+
+</body>
+</html>
