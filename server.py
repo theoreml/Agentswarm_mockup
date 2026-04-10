@@ -54,6 +54,42 @@ JSON 배열만 출력 (마크다운 없이):
 JSON 배열만 출력 (마크다운 없이):
 [{{"nick":"닉네임","lv":"Lv7","text":"댓글(30자이내)","up":숫자,"down":숫자,"reply":숫자}}]"""
     },
+    "youtube": {
+        "name": "유튜브 댓글",
+        "system": """너는 유튜브 뷰티/스킨케어 리뷰 영상의 댓글 섹션을 시뮬레이션하는 AI야.
+다양한 연령대의 실제 시청자들이 영상에 달 법한 댓글을 생성해.
+말투: 유튜브 특유의 캐주얼함, 이모지 적극 사용, 유튜버에게 직접 말 걸듯.
+관심사: 크리에이터 신뢰도, 실제 효과 문의, 구매 링크 요청, 성분 질문, 가격 언급.""",
+        "user_tmpl": """제품: {name} / 가격: {price}원 / {desc}
+
+유튜브 뷰티 리뷰 영상 댓글 4개. 각 30자 이내.
+JSON 배열만 출력 (마크다운 없이):
+[{{"nick":"닉네임","text":"댓글(30자이내)","likes":숫자,"time":"N일 전"}}]"""
+    },
+    "coupang": {
+        "name": "쿠팡 리뷰",
+        "system": """너는 쿠팡 상품 구매 리뷰 섹션을 시뮬레이션하는 AI야.
+실제 구매자들이 남기는 솔직하고 구체적인 리뷰를 생성해.
+말투: 구매 후기 중심, 실용적 정보 위주, 별점 포함.
+관심사: 실제 사용 효과, 배송 품질, 가성비, 재구매 의사, 피부타입별 반응.""",
+        "user_tmpl": """제품: {name} / 가격: {price}원 / {desc}
+
+쿠팡 상품 리뷰 4개. 각 30자 이내.
+JSON 배열만 출력 (마크다운 없이):
+[{{"nick":"구매자닉네임","text":"리뷰(30자이내)","stars":1에서5사이정수,"date":"N일 전","verified":true또는false}}]"""
+    },
+    "naver": {
+        "name": "네이버 블로그",
+        "system": """너는 네이버 블로그 뷰티 리뷰어들을 시뮬레이션하는 AI야.
+체험단과 일반 블로거가 작성하는 상세 리뷰의 핵심 스니펫을 생성해.
+말투: 정중하고 상세한 후기체, 전후 비교, 성분명 언급, 긍정적이나 단점도 포함.
+관심사: 장단점 비교, 피부타입별 효과, 재구매 여부, 타 제품 비교.""",
+        "user_tmpl": """제품: {name} / 가격: {price}원 / {desc}
+
+네이버 블로그 리뷰 스니펫 4개. 각 30자 이내.
+JSON 배열만 출력 (마크다운 없이):
+[{{"nick":"블로거닉네임","text":"리뷰스니펫(30자이내)","views":숫자,"date":"N일 전","type":"체험단 또는 일반"}}]"""
+    },
     "insta": {
         "name": "인스타그램",
         "system": """너는 인스타그램 뷰티/스킨케어 해시태그 생태계 분석 전문가야.
@@ -76,6 +112,12 @@ JSON 배열만 출력 (마크다운 없이):
 }
 
 class SimulateRequest(BaseModel):
+    name: str
+    price: str
+    desc: str
+
+class SimulateAddRequest(BaseModel):
+    community: str
     name: str
     price: str
     desc: str
@@ -124,6 +166,21 @@ async def simulate(req: SimulateRequest):
                 None, generate_community, key, req.name, req.price, req.desc
             )
             yield f"data: {json.dumps(result, ensure_ascii=False)}\n\n"
+        yield "data: {\"done\": true}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+@app.post("/simulate/add")
+async def simulate_add(req: SimulateAddRequest):
+    if req.community not in COMMUNITY_PROMPTS:
+        return {"error": "unknown community"}
+    loop = asyncio.get_event_loop()
+
+    async def event_stream():
+        result = await loop.run_in_executor(
+            None, generate_community, req.community, req.name, req.price, req.desc
+        )
+        yield f"data: {json.dumps(result, ensure_ascii=False)}\n\n"
         yield "data: {\"done\": true}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
