@@ -246,7 +246,7 @@ body {
   overflow-y: auto; padding: 14px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-auto-rows: minmax(260px, calc(50% - 5.5px));
   gap: 11px; flex: 1;
   scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.07) transparent;
 }
@@ -584,7 +584,7 @@ body {
   border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.38);
   display: flex; align-items: center; gap: 4px;
 }
-.upsell-comm-tag.active { background: rgba(109,40,217,0.2); border-color: rgba(139,92,246,0.38); color: #C4B5FD; }
+.upsell-comm-tag.active { background: rgba(29,78,216,0.2); border-color: rgba(59,130,246,0.38); color: #93C5FD; }
 
 .upsell-cta {
   width: 100%; padding: 12px;
@@ -595,6 +595,91 @@ body {
   transition: opacity .15s, transform .12s;
 }
 .upsell-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ── PERSONA MODAL ── */
+.pmodal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+.pmodal-overlay.open { display: flex; }
+.pmodal {
+  background: rgba(15,14,28,0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px; padding: 24px; width: 340px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  animation: fadeUp 0.2s both;
+}
+.pmodal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.pmodal-title { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+.pmodal-close {
+  background: none; border: none; color: var(--text-tertiary);
+  font-size: 18px; cursor: pointer; line-height: 1; padding: 0 4px;
+}
+.pmodal-close:hover { color: var(--text-primary); }
+.pmodal-sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: 18px; }
+.pmodal-grid { display: flex; flex-direction: column; gap: 8px; }
+.pmodal-chip {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: 12px; padding: 12px 14px; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pmodal-chip:hover:not(.done) { background: var(--surface-hover); border-color: rgba(59,130,246,0.4); }
+.pmodal-chip.done { opacity: 0.4; cursor: not-allowed; }
+.pchip-icon { font-size: 22px; flex-shrink: 0; }
+.pchip-info { flex: 1; }
+.pchip-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.pchip-desc { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+.pchip-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  background: rgba(29,78,216,0.2); color: #93C5FD; border: 1px solid rgba(59,130,246,0.3);
+}
+.pchip-badge.done-badge {
+  background: rgba(255,255,255,0.05); color: var(--text-tertiary); border-color: var(--border);
+}
+/* New community panel styles */
+.panel-youtube .panel-accent-bar { background: #FF4444; box-shadow: 0 0 10px rgba(255,68,68,0.28); }
+.panel-youtube .panel-title { color: #FF8888; }
+.panel-youtube .panel-tag { background: rgba(255,68,68,0.09); border-color: rgba(255,68,68,0.18); color: #FF6666; }
+.panel-coupang .panel-accent-bar { background: #E8521B; box-shadow: 0 0 10px rgba(232,82,27,0.28); }
+.panel-coupang .panel-title { color: #FF8855; }
+.panel-coupang .panel-tag { background: rgba(232,82,27,0.09); border-color: rgba(232,82,27,0.18); color: #FF7744; }
+.panel-naver .panel-accent-bar { background: #03C75A; box-shadow: 0 0 10px rgba(3,199,90,0.28); }
+.panel-naver .panel-title { color: #4DEBA4; }
+.panel-naver .panel-tag { background: rgba(3,199,90,0.09); border-color: rgba(3,199,90,0.18); color: #2ECC71; }
+/* YouTube msg */
+.msg-yt { display: flex; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.msg-yt:last-child { border-bottom: none; }
+.yt-ava { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,68,68,0.18); border: 1px solid rgba(255,68,68,0.28); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #FF8888; flex-shrink: 0; }
+.yt-body { flex: 1; }
+.yt-nick { font-size: 11px; font-weight: 700; color: rgba(255,136,136,0.8); }
+.yt-time { font-size: 10px; color: var(--text-tertiary); font-weight: 400; margin-left: 5px; }
+.yt-text { font-size: 12.5px; color: var(--text-primary); line-height: 1.5; margin-top: 2px; }
+.yt-meta { font-size: 10px; color: var(--text-tertiary); margin-top: 4px; }
+/* Coupang msg */
+.msg-cpg { padding: 9px 0; border-bottom: 1px solid var(--border); }
+.msg-cpg:last-child { border-bottom: none; }
+.cpg-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.cpg-nick { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.cpg-stars { font-size: 11px; color: #FBBF24; letter-spacing: -1px; }
+.cpg-date { margin-left: auto; font-size: 10px; color: var(--text-tertiary); }
+.cpg-text { font-size: 12.5px; color: var(--text-primary); line-height: 1.5; }
+.cpg-verified { font-size: 10px; color: #03C75A; margin-top: 3px; }
+/* Naver msg */
+.msg-naver { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.msg-naver:last-child { border-bottom: none; }
+.naver-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.naver-nick { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.naver-type { font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.type-exp { background: rgba(3,199,90,0.15); color: #03C75A; border: 1px solid rgba(3,199,90,0.3); }
+.type-normal { background: rgba(255,255,255,0.06); color: var(--text-tertiary); border: 1px solid var(--border); }
+.naver-views { margin-left: auto; font-size: 10px; color: var(--text-tertiary); }
+.naver-text { font-size: 12.5px; color: var(--text-primary); line-height: 1.5; }
+.naver-date { font-size: 10px; color: var(--text-tertiary); margin-top: 3px; }
 
 /* SCENARIO */
 .scenario-block {
@@ -784,7 +869,7 @@ body {
             <span class="upsell-comm-tag" id="tag-fem">🔮 펨코</span>
             <span class="upsell-comm-tag" id="tag-insta">📸 인스타</span>
           </div>
-          <button class="upsell-cta" onclick="goBack()">새 제품 시뮬레이션</button>
+          <button class="upsell-cta" onclick="openPersonaModal()">＋ 페르소나 추가</button>
         </div>
       </div>
 
@@ -795,6 +880,18 @@ body {
         </div>
       </div>
     </aside>
+  </div>
+</div>
+
+<!-- PERSONA MODAL -->
+<div id="persona-modal" class="pmodal-overlay" onclick="closePersonaModal(event)">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title">페르소나 추가</span>
+      <button class="pmodal-close" onclick="closePersonaModal()">×</button>
+    </div>
+    <div class="pmodal-sub">추가할 커뮤니티 페르소나를 선택하세요</div>
+    <div class="pmodal-grid" id="pmodal-grid"></div>
   </div>
 </div>
 
@@ -839,6 +936,15 @@ async function startSimulation() {
 }
 
 function resetPanels() {
+  // remove dynamically added persona panels
+  Object.keys(EXTRA_PERSONAS).forEach(k => {
+    const el = document.getElementById(`panel-wrap-${k}`);
+    if (el) el.remove();
+    const tag = document.getElementById(`tag-${k}`);
+    if (tag) tag.remove();
+  });
+  addedPersonas = new Set(['mom','dc','fem','insta']);
+
   const skeleton = `
     <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
     <div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>`;
@@ -928,6 +1034,9 @@ function renderCommunity(key, data) {
   if (key === 'mom') renderMom(body, footer, data);
   else if (key === 'dc') renderDc(body, footer, data);
   else if (key === 'fem') renderFem(body, footer, data);
+  else if (key === 'youtube') renderYoutube(body, footer, data);
+  else if (key === 'coupang') renderCoupang(body, footer, data);
+  else if (key === 'naver') renderNaver(body, footer, data);
 }
 
 function esc(s) {
@@ -1115,6 +1224,158 @@ function finalize(allData) {
     <button class="scenario-cta" onclick="resimulate(${alt})">
       ${alt.toLocaleString()}원으로 다시 시뮬레이션
     </button>`;
+}
+
+/* ── PERSONA MODAL ── */
+const EXTRA_PERSONAS = {
+  youtube: { name: '유튜브 댓글', icon: '🎥', desc: '리뷰 영상 시청자 반응', color: '#FF4444' },
+  coupang: { name: '쿠팡 리뷰',   icon: '🛒', desc: '실구매자 별점 리뷰',   color: '#E8521B' },
+  naver:   { name: '네이버 블로그',icon: '📝', desc: '체험단·블로거 후기',   color: '#03C75A' }
+};
+const BASE_PERSONAS = new Set(['mom','dc','fem','insta']);
+let addedPersonas = new Set(['mom','dc','fem','insta']);
+
+function openPersonaModal() {
+  const grid = document.getElementById('pmodal-grid');
+  grid.innerHTML = '';
+  Object.entries(EXTRA_PERSONAS).forEach(([key, cfg]) => {
+    const done = addedPersonas.has(key);
+    const chip = document.createElement('div');
+    chip.className = 'pmodal-chip' + (done ? ' done' : '');
+    chip.innerHTML = `
+      <div class="pchip-icon">${cfg.icon}</div>
+      <div class="pchip-info">
+        <div class="pchip-name">${cfg.name}</div>
+        <div class="pchip-desc">${cfg.desc}</div>
+      </div>
+      <div class="pchip-badge ${done ? 'done-badge' : ''}">${done ? '추가됨' : '추가'}</div>`;
+    if (!done) chip.onclick = () => selectPersona(key, cfg);
+    grid.appendChild(chip);
+  });
+  document.getElementById('persona-modal').classList.add('open');
+}
+
+function closePersonaModal(e) {
+  if (!e || e.target === document.getElementById('persona-modal'))
+    document.getElementById('persona-modal').classList.remove('open');
+}
+
+async function selectPersona(key, cfg) {
+  if (addedPersonas.has(key)) return;
+  addedPersonas.add(key);
+  closePersonaModal();
+
+  // create new panel
+  const panelsArea = document.querySelector('.panels-area');
+  const panel = document.createElement('div');
+  panel.className = `panel panel-${key}`;
+  panel.id = `panel-wrap-${key}`;
+  const skeleton = `<div class="skeleton-msg"><div class="skeleton-ava"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div></div></div>`;
+  panel.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-accent-bar"></div>
+      <span class="panel-title">${cfg.name}</span>
+      <span class="panel-tag">${cfg.desc}</span>
+      <span class="panel-meta" id="${key}-meta">생성 중...</span>
+    </div>
+    <div class="panel-body" id="panel-${key}">${skeleton}</div>
+    <div class="panel-footer" id="footer-${key}"></div>`;
+  panelsArea.appendChild(panel);
+
+  // add sidebar tag
+  const tagsEl = document.querySelector('.upsell-communities');
+  const tag = document.createElement('span');
+  tag.className = 'upsell-comm-tag';
+  tag.id = `tag-${key}`;
+  tag.textContent = `${cfg.icon} ${cfg.name}`;
+  tagsEl.appendChild(tag);
+
+  await runSingleCommunity(key);
+}
+
+async function runSingleCommunity(key) {
+  const { name, price, desc, category } = productInfo;
+  const res = await fetch('/simulate/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ community: key, name, price, desc: desc + (category ? ` 카테고리: ${category}` : '') })
+  });
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const payload = JSON.parse(line.slice(6).trim());
+        if (payload.done) return;
+        renderCommunity(payload.community, payload.data);
+        document.getElementById(`tag-${key}`).className = 'upsell-comm-tag active';
+      } catch(e) {}
+    }
+  }
+}
+
+function renderYoutube(body, footer, data) {
+  data.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'msg-yt';
+    div.style.animation = `fadeUp .4s ${0.05 + i * 0.08}s both`;
+    div.innerHTML = `
+      <div class="yt-ava">${esc(m.nick[0] || 'Y')}</div>
+      <div class="yt-body">
+        <div><span class="yt-nick">${esc(m.nick)}</span><span class="yt-time">${esc(m.time || '')}</span></div>
+        <div class="yt-text">${esc(m.text)}</div>
+        <div class="yt-meta">👍 ${m.likes || 0}</div>
+      </div>`;
+    body.appendChild(div);
+  });
+  footer.innerHTML = `<span class="badge badge-yellow">🟡 댓글 ${data.length}개</span>`;
+}
+
+function renderCoupang(body, footer, data) {
+  data.forEach((m, i) => {
+    const s = Math.min(5, Math.max(1, m.stars || 5));
+    const stars = '★'.repeat(s) + '☆'.repeat(5 - s);
+    const div = document.createElement('div');
+    div.className = 'msg-cpg';
+    div.style.animation = `fadeUp .4s ${0.05 + i * 0.08}s both`;
+    div.innerHTML = `
+      <div class="cpg-header">
+        <span class="cpg-nick">${esc(m.nick)}</span>
+        <span class="cpg-stars">${stars}</span>
+        <span class="cpg-date">${esc(m.date || '')}</span>
+      </div>
+      <div class="cpg-text">${esc(m.text)}</div>
+      ${m.verified ? '<div class="cpg-verified">✓ 구매 확인됨</div>' : ''}`;
+    body.appendChild(div);
+  });
+  const avg = data.reduce((a, m) => a + (m.stars || 5), 0) / data.length;
+  footer.innerHTML = `<span class="badge badge-yellow">🟡 평균 ${avg.toFixed(1)}점 · ${data.length}개 리뷰</span>`;
+}
+
+function renderNaver(body, footer, data) {
+  data.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'msg-naver';
+    div.style.animation = `fadeUp .4s ${0.05 + i * 0.08}s both`;
+    div.innerHTML = `
+      <div class="naver-header">
+        <span class="naver-nick">${esc(m.nick)}</span>
+        <span class="naver-type ${m.type === '체험단' ? 'type-exp' : 'type-normal'}">${esc(m.type || '일반')}</span>
+        <span class="naver-views">조회 ${(m.views || 0).toLocaleString()}</span>
+      </div>
+      <div class="naver-text">${esc(m.text)}</div>
+      <div class="naver-date">${esc(m.date || '')}</div>`;
+    body.appendChild(div);
+  });
+  const expCount = data.filter(m => m.type === '체험단').length;
+  footer.innerHTML = `<span class="badge badge-green">🟢 체험단 ${expCount}개 · 일반 ${data.length - expCount}개</span>`;
 }
 
 function resimulate(newPrice) {
